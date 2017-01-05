@@ -1,0 +1,18 @@
+{
+    "name": "lekhang/goship-sdk-php",
+    "description": "goship sdk php",
+    "authors": [
+        {
+            "name": "Le Khang",
+            "email": "lekhang2512@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "~6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "GoshipSdkPhp\\": "src/"
+        }
+    }
+}
