@@ -13,6 +13,10 @@
     "autoload": {
         "psr-4": {
             "GoshipSdkPhp\\": "src/"
-        }
+        },
+        "files": [
+            "src/Constants.php",
+            "src/Helpers/functions.php"
+        ]
     }
 }
