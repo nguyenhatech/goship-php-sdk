@@ -11,6 +11,7 @@ class Goship
 {
     protected $options;
     protected $token;
+    protected $shipment;
 
     public function __construct($options) {
         $client = new Client([
@@ -56,10 +57,11 @@ class Goship
     {
         $errors = new ValidateRate;
         if ($errors->validate($param)) {
+            $this->shipment = $param;
             try {
                 $request = $this->client->request('POST', BASE_API_LOCAL_RATES, ['form_params' => ['shipment' => $param]]);
                 $data = json_decode($request->getBody()->getContents(), true);
-                return $data;
+                return $data['data'];
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 $errors = json_decode($e->getResponse()->getBody()->getContents(), true);
             }
@@ -71,13 +73,14 @@ class Goship
 
     public function createShipment($param)
     {
+        $this->shipment['rate'] = $param;
         $errors = new ValidateShipment;
-        if ($errors->validate($param)) {
+        if ($errors->validate($this->shipment)) {
             if (!$this->token) {
                 $this->getAccessToken();
-                return $this->requestShipment($param);
+                return $this->requestShipment($this->shipment);
             } else {
-                return $this->requestShipment($param);
+                return $this->requestShipment($this->shipment);
             }
         }
     }
