@@ -73,7 +73,7 @@ class Goship
 
     public function createShipment($param)
     {
-        $this->shipment['rate'] = $param;
+        $this->shipment['rate'] = $param['id'];
         $errors = new ValidateShipment;
         if ($errors->validate($this->shipment)) {
             if (!$this->token) {

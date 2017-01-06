@@ -1,6 +1,5 @@
 <?php
 require_once 'vendor/autoload.php';
-require_once(__DIR__ . '/src/Constants.php');
 use GoshipSdkPhp\Goship;
 
 
@@ -27,7 +26,7 @@ $shipment = [
         'district' => 100200
     ],
     'parcel' => [
-        // 'cod' => 50000,
+        'cod' => 50000,
         'length' => 15,
         'width' => 15,
         'height' => 15,
@@ -43,5 +42,5 @@ $goship = new Goship($login);
 echo "<pre>";
 print_r($goship->getAccessToken());
 $rates = $goship->getRates($shipment);
-print_r($goship->createShipment($rates[0]['id']));
+print_r($goship->createShipment($rates[0]));
 echo "</pre>";
