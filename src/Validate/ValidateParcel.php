@@ -59,5 +59,3 @@ class ValidateParcel implements Validator
         return true;
     }
 }
-
- ?>

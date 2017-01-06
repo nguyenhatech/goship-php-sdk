@@ -47,5 +47,3 @@ class ValidateAddress implements Validator
         return true;
     }
 }
-
- ?>

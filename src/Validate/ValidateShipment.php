@@ -60,4 +60,3 @@ class ValidateShipment implements Validator
     }
 }
 
- ?>
