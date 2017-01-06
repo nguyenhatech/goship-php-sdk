@@ -84,4 +84,3 @@ class ValidateRate implements Validator
     }
 }
 
- ?>

@@ -12,5 +12,3 @@ function compareArray(array $current, array $prev)
     }
     return ['status' => true];
 }
-
- ?>

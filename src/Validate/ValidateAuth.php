@@ -40,5 +40,3 @@ class ValidateAuth implements Validator
         return true;
     }
 }
-
- ?>
