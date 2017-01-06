@@ -27,7 +27,7 @@ $shipment = [
         'district' => 100200
     ],
     'parcel' => [
-        'cod' => 50000,
+        // 'cod' => 50000,
         'length' => 15,
         'width' => 15,
         'height' => 15,
@@ -43,6 +43,5 @@ $goship = new Goship($login);
 echo "<pre>";
 print_r($goship->getAccessToken());
 $rates = $goship->getRates($shipment);
-$shipment['rate'] = $rates['data'][0]['id'];
-print_r($goship->createShipment($shipment));
+print_r($goship->createShipment($rates[0]['id']));
 echo "</pre>";
