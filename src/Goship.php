@@ -3,7 +3,9 @@
 namespace GoshipSdkPhp;
 
 use GuzzleHttp\Client;
-require_once(__DIR__ . '/Constants.php');
+use GoshipSdkPhp\Validate\ValidateAuth;
+use GoshipSdkPhp\Validate\ValidateRate;
+use GoshipSdkPhp\Validate\ValidateShipment;
 
 class Goship
 {
@@ -35,38 +37,48 @@ class Goship
 
     public function getAccessToken()
     {
-        try {
-            $request = $this->client->request('POST', BASE_API_LOCAL_LOGIN, ['form_params' => $this->options]);
-            $data = json_decode($request->getBody()->getContents(), true);
+        $errors = new ValidateAuth;
+        if ($errors->validate($this->options)) {
+            try {
+                $request = $this->client->request('POST', BASE_API_LOCAL_LOGIN, ['form_params' => $this->options]);
+                $data = json_decode($request->getBody()->getContents(), true);
 
-            return $this->token = $data['token_type'] . ' ' . $data['access_token'];
+                return $this->token = $data['token_type'] . ' ' . $data['access_token'];
 
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            $errors = json_decode($e->getResponse()->getBody()->getContents(), true);
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                $errors = json_decode($e->getResponse()->getBody()->getContents(), true);
+            }
+            return $errors;
         }
-        return $errors;
     }
 
     public function getRates($param)
     {
-        try {
-            $request = $this->client->request('POST', BASE_API_LOCAL_RATES, ['form_params' => $param]);
-            $data = json_decode($request->getBody()->getContents(), true);
-            return $data;
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            $errors = json_decode($e->getResponse()->getBody()->getContents(), true);
+        $errors = new ValidateRate;
+        if ($errors->validate($param)) {
+            try {
+                $request = $this->client->request('POST', BASE_API_LOCAL_RATES, ['form_params' => ['shipment' => $param]]);
+                $data = json_decode($request->getBody()->getContents(), true);
+                return $data;
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                $errors = json_decode($e->getResponse()->getBody()->getContents(), true);
+            }
+
+            return $errors;
         }
 
-        return $errors;
     }
 
     public function createShipment($param)
     {
-        if (!$this->token) {
-            $this->getAccessToken();
-            return $this->requestShipment($param);
-        } else {
-            return $this->requestShipment($param);
+        $errors = new ValidateShipment;
+        if ($errors->validate($param)) {
+            if (!$this->token) {
+                $this->getAccessToken();
+                return $this->requestShipment($param);
+            } else {
+                return $this->requestShipment($param);
+            }
         }
     }
 
@@ -78,7 +90,7 @@ class Goship
                     'Accept'     => 'application/json'
                 ],
                 'allow_redirects' => false,
-                'form_params' => $param
+                'form_params' => ['shipment' => $param]
             ]);
             $data = json_decode($request->getBody()->getContents(), true);
 
