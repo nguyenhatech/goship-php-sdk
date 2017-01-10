@@ -7,7 +7,9 @@ $login = [
     'username' => "lekhang2512@gmail.com",
     'password' => "111111",
     'client_id' => 5,
-    'client_secret' => "SWNXqgIVkAQclPVpRMNXoWLWgqOZTNHnNdjkcbqO"
+    'client_secret' => "SWNXqgIVkAQclPVpRMNXoWLWgqOZTNHnNdjkcbqO",
+    'workspace' => "dev",
+    'version' => "v1"
 ];
 
 $shipment = [
@@ -40,7 +42,10 @@ $shipment = [
 $goship = new Goship($login);
 
 echo "<pre>";
-print_r($goship->getAccessToken());
+print_r($goship->getToken());
 $rates = $goship->getRates($shipment);
-print_r($goship->createShipment($rates[0]));
+// print_r($rates);
+// print_r($goship->createShipment($rates[0]));
+// print_r($goship->detailShipment("GOO7DL72G6X"));
+print_r($goship->trackShipment("GOO7DL72G6X"));
 echo "</pre>";

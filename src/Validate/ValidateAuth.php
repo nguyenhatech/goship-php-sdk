@@ -23,17 +23,19 @@ class ValidateAuth implements Validator
             }
         } else {
             foreach ($auth as $key => $value) {
-                switch ($key) {
-                    case 'client_id':
-                        if (!is_numeric($value)) {
-                            throw new \Exception("{$key} không phải là kiểu số");
-                        }
-                        break;
-                    default:
-                        if (!$value) {
-                            throw new \Exception("{$key} không được để trống");
-                        }
-                        break;
+                if (in_array($key, array_keys($this->defaultAuth))) {
+                    switch ($key) {
+                        case 'client_id':
+                            if (!is_numeric($value)) {
+                                throw new \Exception("{$key} không phải là kiểu số");
+                            }
+                            break;
+                        default:
+                            if (!$value) {
+                                throw new \Exception("{$key} không được để trống");
+                            }
+                            break;
+                    }
                 }
             }
         }
