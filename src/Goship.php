@@ -12,16 +12,23 @@ class Goship
     protected $options;
     protected $token;
     protected $shipment;
+    protected $workspace = 'production';
+    protected $version = 'v1';
 
     public function __construct($options) {
+        $this->setUp($options);
+        if (isset($options['workspace']) && isset($options['version'])) {
+            $this->workspace = $options['workspace'];
+            $this->version = $options['version'];
+        }
+
         $client = new Client([
             // Base URI is used with relative requests
-            // 'base_uri' => BASE_API_LOCAL,
+            'base_uri' => $this->generateBaseUrl(),
             // You can set any number of default request options.
             'timeout'  => 2.0,
         ]);
         $this->client = $client;
-        $this->setUp($options);
     }
     /**
      * Setup
@@ -36,12 +43,12 @@ class Goship
         }
     }
 
-    public function getAccessToken()
+    public function getToken()
     {
         $errors = new ValidateAuth;
         if ($errors->validate($this->options)) {
             try {
-                $request = $this->client->request('POST', BASE_API_LOCAL_LOGIN, ['form_params' => $this->options]);
+                $request = $this->client->request('POST', "{$this->generateLoginUrl()}", ['form_params' => $this->options]);
                 $data = json_decode($request->getBody()->getContents(), true);
 
                 return $this->token = $data['token_type'] . ' ' . $data['access_token'];
@@ -58,15 +65,12 @@ class Goship
         $errors = new ValidateRate;
         if ($errors->validate($param)) {
             $this->shipment = $param;
-            try {
-                $request = $this->client->request('POST', BASE_API_LOCAL_RATES, ['form_params' => ['shipment' => $param]]);
-                $data = json_decode($request->getBody()->getContents(), true);
-                return $data['data'];
-            } catch (\GuzzleHttp\Exception\ClientException $e) {
-                $errors = json_decode($e->getResponse()->getBody()->getContents(), true);
+            if (!$this->token) {
+                $this->getToken();
+                return $this->sendGetRateRequest($param);
+            } else {
+                return $this->sendGetRateRequest($param);
             }
-
-            return $errors;
         }
 
     }
@@ -77,17 +81,41 @@ class Goship
         $errors = new ValidateShipment;
         if ($errors->validate($this->shipment)) {
             if (!$this->token) {
-                $this->getAccessToken();
-                return $this->requestShipment($this->shipment);
+                $this->getToken();
+                return $this->sendCreateShipmentResquest($this->shipment);
             } else {
-                return $this->requestShipment($this->shipment);
+                return $this->sendCreateShipmentResquest($this->shipment);
             }
         }
     }
 
-    public function requestShipment ($param) {
+    public function detailShipment($id)
+    {
+        if ($id != '') {
+            if (!$this->token) {
+                $this->getToken();
+                return $this->sendDetailShipmentResquest($id);
+            } else {
+                return $this->sendDetailShipmentResquest($id);
+            }
+        }
+    }
+
+    public function trackShipment($id)
+    {
+        if ($id != '') {
+            if (!$this->token) {
+                $this->getToken();
+                return $this->sendDetailShipmentResquest($id);
+            } else {
+                return $this->sendDetailShipmentResquest($id);
+            }
+        }
+    }
+
+    public function sendCreateShipmentResquest ($param) {
         try {
-            $request = $this->client->request('POST', BASE_API_LOCAL_CREATE_SHIPMENT, [
+            $request = $this->client->request('POST', 'ext_v1/shipment/create', [
                 'headers' => [
                     'Authorization' => $this->token,
                     'Accept'     => 'application/json'
@@ -106,4 +134,69 @@ class Goship
         return $errors;
     }
 
+    public function generateBaseUrl() {
+        if ($this->workspace === 'sandbox') {
+            return 'https://sandbox.goship.io/api/';
+        } else if ($this->workspace === 'dev') {
+            return 'http://goship.dev/api/';
+        } else {
+            return 'https://api.goship.io/api/';
+        }
+    }
+
+    public function generateLoginUrl() {
+        return "{$this->version}/login";
+    }
+
+    public function sendGetRateRequest($param) {
+        try {
+            $request = $this->client->request('POST',"ext_{$this->version}/shipment/rates", [
+                'headers' => [
+                    'Authorization' => $this->token,
+                    'Accept'     => 'application/json'
+                ],
+                'allow_redirects' => false,
+                'form_params' => ['shipment' => $param]
+            ]);
+            $data = json_decode($request->getBody()->getContents(), true);
+            return $data['data'];
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errors = json_decode($e->getResponse()->getBody()->getContents(), true);
+        }
+        return $errors;
+    }
+
+    public function sendDetailShipmentResquest ($id) {
+        try {
+            $request = $this->client->request('GET',"ext_{$this->version}/shipment/info/{$id}", [
+                'headers' => [
+                    'Authorization' => $this->token,
+                    'Accept'     => 'application/json'
+                ],
+                'allow_redirects' => false
+            ]);
+            $data = json_decode($request->getBody()->getContents(), true);
+            return $data['data'];
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errors = json_decode($e->getResponse()->getBody()->getContents(), true);
+        }
+        return $errors;
+    }
+
+    public function sendTrackShipmentResquest ($id) {
+        try {
+            $request = $this->client->request('GET',"ext_{$this->version}/shipment/track/{$id}", [
+                'headers' => [
+                    'Authorization' => $this->token,
+                    'Accept'     => 'application/json'
+                ],
+                'allow_redirects' => false
+            ]);
+            $data = json_decode($request->getBody()->getContents(), true);
+            return $data['data'];
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errors = json_decode($e->getResponse()->getBody()->getContents(), true);
+        }
+        return $errors;
+    }
 }
